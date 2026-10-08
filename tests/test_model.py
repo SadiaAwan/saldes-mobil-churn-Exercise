@@ -1,13 +1,13 @@
-"""Testnivå 3: modell. Kontrakt och reproducerbarhet."""
-
-import json
-from pathlib import Path
+"""Testnivå 3: modell. Kontrakt, reproducerbarhet och prestanda."""
 
 import numpy as np
 import pytest
+from sklearn.dummy import DummyClassifier
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 
 from churn.data import FEATURES, dela_upp, las_data, skapa_features
-from churn.model import trana_och_utvardera
+from churn.model import SEED, trana_och_utvardera
 
 
 @pytest.fixture(scope="module")
@@ -30,3 +30,34 @@ def test_reproducerbar(resultat):
     assert igen == matvarden
 
 
+def test_roc_auc_ar_minst_070(resultat):
+    _, matvarden = resultat
+
+    assert matvarden["roc_auc"] >= 0.70, (
+        f"ROC AUC är för lågt: {matvarden['roc_auc']:.3f}"
+    )
+
+
+def test_modellen_slar_dummy(resultat):
+    _, matvarden = resultat
+    X, y = dela_upp(skapa_features(las_data()))
+
+    # Samma uppdelning som modellen använder.
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.25,
+        random_state=SEED,
+        stratify=y,
+    )
+
+    dummy = DummyClassifier(strategy="prior")
+    dummy.fit(X_train, y_train)
+
+    sannolikhet = dummy.predict_proba(X_test)[:, 1]
+    dummy_auc = roc_auc_score(y_test, sannolikhet)
+
+    assert matvarden["roc_auc"] > dummy_auc, (
+        f"Modellens ROC AUC ({matvarden['roc_auc']:.3f}) "
+        f"slår inte DummyClassifier ({dummy_auc:.3f})"
+    )

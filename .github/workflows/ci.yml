@@ -18,7 +18,9 @@ on:
       - "pyproject.toml"
       - ".github/workflows/**"
 
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tester:
@@ -101,3 +103,6 @@ jobs:
 
       - name: Kontrollera modellens kvalitet
         run: python -m churn.evaluate
+# Ny push testar att den tidigare CI-korningen avbryts.
+# Concurrency-test: forsta snabba pushen.
+# Concurrency-test: andra snabba pushen.

@@ -105,3 +105,4 @@ jobs:
         run: python -m churn.evaluate
 # Ny push testar att den tidigare CI-korningen avbryts.
 # Concurrency-test: forsta snabba pushen.
+# Concurrency-test: andra snabba pushen.

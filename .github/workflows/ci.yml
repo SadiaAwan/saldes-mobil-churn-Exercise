@@ -97,6 +97,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Kontrollera modellens kvalitet
+        env:
+          MIN_ROC_AUC: "0.90"
         run: python -m churn.evaluate
 # Ny push testar att den tidigare CI-korningen avbryts.
 # Concurrency-test: forsta snabba pushen.
